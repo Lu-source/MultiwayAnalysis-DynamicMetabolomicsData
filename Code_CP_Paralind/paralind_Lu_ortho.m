@@ -48,9 +48,8 @@ function [A,H,B,C,fit,it,explainvar] = paralind(X,R,S,Constraints,Options,H,A,B,
 %   a =  0 => no constraints in A
 %   a =  1 => nonnegativity in A
 %   a =  2 => unimodality in A 
-%   a =  3 => orthogonality in A % by Lu% I only add choice of
-%   orthogonality for the mode A and mode B
 %   same holds for b, c, and d for H, B an C respectively (unimodal not for H)
+%   a =  3 => orthogonality in A % by Lu, same holds for b for B
 %
 % Options
 %   An optional vector of length 3
@@ -434,8 +433,8 @@ while abs(fit-olderfit)>olderfit*ConvCrit & it<MaxIt & fit>1000*eps
       end
       if Constraints(1)==0
          A = XtZ*pinv( H*((B'*B).*(C'*C))*H' );
-      elseif Constraints(1)==3 %by Lu, orthogolity
-         A = XtZ*pinv(sqrtm(XtZ'*XtZ)); %by Lu, orthogolity
+      elseif Constraints(1)==3 %by Lu, put orthogolity
+         A = XtZ*pinv(sqrtm(XtZ'*XtZ)); %by Lu, put orthogolity
       elseif Constraints(1)==1
          ZtZ = H*((B'*B).*(C'*C))*H';
          for i=1:size(A,1)
@@ -463,8 +462,8 @@ while abs(fit-olderfit)>olderfit*ConvCrit & it<MaxIt & fit>1000*eps
       end
       if Constraints(3)==0
          B = XtZ*pinv( (H'*A'*A*H).*(C'*C) );
-      elseif Constraints(3)==3  %by Lu
-         B = XtZ*pinv(sqrtm(XtZ'*XtZ)); %by Lu, orthogolity
+      elseif Constraints(3)==3  %by Lu, put orthogonality
+         B = XtZ*pinv(sqrtm(XtZ'*XtZ)); %by Lu, put orthogolity
       elseif Constraints(3)==1
          ZtZ = (H'*A'*A*H).*(C'*C);
          for i=1:size(B,1)
@@ -580,7 +579,7 @@ if rem(it,ShowFit)~=0 %Show final fit if not just shown
    end
 end
 
-explainvar=100*(1-fit/fit0);
+explainvar=100*(1-fit/fit0);% added by Lu, to show the explained variance
 
 
 

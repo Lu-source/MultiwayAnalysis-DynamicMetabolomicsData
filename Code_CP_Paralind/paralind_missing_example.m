@@ -1,46 +1,46 @@
 
-%%
-clear all
-addpath('/Users/ll/Documents/MATLAB/toolbox/PLS_Toolbox_891')
-save path 
-%% load original data
-load('Y_nopreprocess.mat','Y')
+% An example script for computing the tensor completion score (TCS)
+% using Paralind model when we perform cross-validation.
+% To run this code, PLS toolbox is needed
+
+%% load data
+load('GLM_beta002_PFKalpha05.mat','Y')
 Xorig=tensor(Y.data);
 
-%% add noise 
+%% add noise
 eta=0.3; %the level of noise
-%   N=tensor(randn(size(Xorig)));
-load ('N.mat','N')
-%   save ('N.mat','N')
+N=tensor(randn(size(Xorig)));
 Xnoise=Xorig+eta*N/norm(N)*norm(Xorig);
-%% set missing values
-mis_perc=0.2*ones(1,20);
-%  Wall=cell(1,length(mis_perc));
-load('Wall.mat','Wall')
-for q=1:length(mis_perc) % loop for 20 samples 
-    % W=create_missing_data_pattern(s,mis_perc(q));
-    % Wall{1,q}=W;
-    W=Wall{1,q};
-    data.Wall{q}=W;
-    % set missing value to be nan and then preprocessing
+
+%% Paralind model with missing data
+mis_perc=0.2*ones(1,20); % missing percentage
+
+for q=1:length(mis_perc) % loop for 20 samples
+    
+    W=create_missing_data_pattern(s,mis_perc(q));
+    data.Wall{q}=W; %store the missing position for each sample
+    
+    %% set missing value to be nan
     Xmiss=Xnoise;
     Xmiss(find(W.data==0))=nan;
-    %% preprocessing
-    %  centering across the condition mode
+    
+    %% preprocess the data 
+    %  centering across the subjects mode
     XX=Xmiss.data;
     temp = XX(:,:);
     temp_centered = temp - repmat(nanmean(temp),size(temp,1),1);
     XX_centered = reshape(temp_centered, size(XX));
-    % scaling in the second mode - using std or root mean square
     X_centered=tensor(XX_centered);
+    % scaling in the metabolites mode - using root mean square
     X=X_centered;
     for j=1:size(X,2)
         temp = squeeze(X.data(:,j,:));
         rms = sqrt(nanmean((temp(:).^2)));
-        XX(:,j,:) = temp/rms;           
+        XX(:,j,:) = temp/rms;
     end
     Xpre=tensor(XX);
-    Xpre(find(W.data==0))=0;
+   
+    
 %% perform the Paralind model
 X=Xpre;
 nb_starts=4;
@@ -66,8 +66,8 @@ for i=1:nb_starts
 end
 %%
 [ff, index] = sort(erF,'ascend');
-Fac_X_best = Fac_X{index(1)};
-Fac = Fac_X_best;
+Fac = Fac_X{index(1)};
+
 %% To compute the TCS, we need the postprocessing
     % pull back the data
     Xtilde=full(Fac);
@@ -105,5 +105,5 @@ for q=1:length(data.Xhat)
     ylabel('predicted')
 end
 %% save the data
-% Paralind2_Miss20_data_noise_03_noit=data;
-% save ('Paralind2_Miss20_data_noise_03_noit','Paralind2_Miss20_data_noise_03_noit')
+% Paralind2_Miss20_data_noise_03=data;
+% save ('Paralind2_Miss20_data_noise_03','Paralind2_Miss20_data_noise_03')
