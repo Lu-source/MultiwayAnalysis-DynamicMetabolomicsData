@@ -30,11 +30,11 @@ for i=1:s(2)
     subplot(4,3,i)
     for j=1:s(1)
         if j<=10
-            plot(1:1:20,squeeze(X.data(j,i,:)),'r','Linewidth',1)
+            plot(1:s(3),squeeze(X.data(j,i,:)),'r','Linewidth',1)
             xlim([1 20]);
             hold on
         elseif j<=20
-            plot(1:1:20,squeeze(X.data(j,i,:)),'b','Linewidth',1)
+            plot(1:s(3),squeeze(X.data(j,i,:)),'b','Linewidth',1)
             xlim([1 20]);
             hold on
         end
