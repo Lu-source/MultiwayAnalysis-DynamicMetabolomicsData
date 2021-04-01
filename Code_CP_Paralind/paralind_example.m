@@ -44,7 +44,7 @@ for i=1:s(2)
 end
 
 %% Paralind model
-nb_starts =20;
+nb_starts =60;
 H0=[1 1];
 A0=[];B0=[];C0=[];
 Options(1)=1e-10;
