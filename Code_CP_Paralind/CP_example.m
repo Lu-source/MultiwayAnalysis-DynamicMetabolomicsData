@@ -47,7 +47,7 @@ end
 
 
 %% CP model
-nb_starts =20;
+nb_starts =60;
 nm_comp=2;
 optionsCP.factr=1e-10;
 optionsCP.maxIts = 10000;
