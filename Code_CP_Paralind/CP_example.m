@@ -1,5 +1,5 @@
-% An example script showing how to fit a CP model to the data generated 
-% by dynamic metabolomics data sets. 
+% This script is an example script showing how to fit a CP model to the data generated 
+% through simulations of dynamic systems. 
 
 % We use Tensor Toolbox as well as the L-BFGS-B implementation from https://github.com/stephenbeckr/L-BFGS-B-C
 % In addition, parts of the scripts may require the dataset object (https://eigenvector.com/software/dataset-object/), publically available.
@@ -53,7 +53,7 @@ end
 %% CP model
 nb_starts = 50;
 nm_comp   = 2;
-optionsCP.factr  = 1e5;
+%optionsCP.factr  = 1e5;
 optionsCP.maxIts = 10000;
 optionsCP.maxTotalITs = 50000;
 optionsCP.printEvery  = 10000;
