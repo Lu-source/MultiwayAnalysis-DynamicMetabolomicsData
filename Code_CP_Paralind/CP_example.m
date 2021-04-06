@@ -1,29 +1,33 @@
-
 % An example script showing how to fit a CP model to the data generated 
 % by dynamic metabolomics data sets. 
 
-%% load data
+% We use Tensor Toolbox as well as the L-BFGS-B implementation from https://github.com/stephenbeckr/L-BFGS-B-C
+% In addition, parts of the scripts may require the dataset object (https://eigenvector.com/software/dataset-object/), publically available.
+% For core consistency computation, we also use the corcord function from the Nway toolbox (http://www.models.life.ku.dk/nwaytoolbox).
+
+%% load data: 
+% Y is a subjects by metabolites by time points tensor.
 load('GLM_beta036_PFKalpha05.mat','Y')
-X=tensor(Y.data);
+X = tensor(Y.data);
 labelss = Y.label{2};
 s=size(X);
 
 
 %% preprocess data
 %  centering across the subject mode
-XX=X.data;
+XX   = X.data;
 temp = XX(:,:);
 temp_centered = temp - repmat(mean(temp),size(temp,1),1);
 XXX = reshape(temp_centered, size(XX));
-X=tensor(XXX);
+X   = tensor(XXX);
 % scaling in the metabolites mode - using root mean square
 for j=1:size(X,2)
     temp = squeeze(X.data(:,j,:));
-    rms = sqrt(mean((temp(:).^2)));
+    rms  = sqrt(mean((temp(:).^2)));
     XX(:,j,:) = temp/rms;          
 end
-Xpre=tensor(XX);
-X=tensor(Xpre);
+Xpre = tensor(XX);
+X    = tensor(Xpre);
 
 
 %% plot the preprocessed data
@@ -47,30 +51,26 @@ end
 
 
 %% CP model
-nb_starts =60;
-nm_comp=2;
-optionsCP.factr=1e-10;
+nb_starts = 50;
+nm_comp   = 2;
+optionsCP.factr  = 1e5;
 optionsCP.maxIts = 10000;
-optionsCP.maxTotalITs=50000;
+optionsCP.maxTotalITs = 50000;
 optionsCP.printEvery  = 10000;
 Low{1}=-Inf*ones(size(X,1),nm_comp);
 Low{2}=-Inf*ones(size(X,2),nm_comp);
-Low{3}=zeros(size(X,3),nm_comp);
-goodness_X1 = strings(nb_starts,1);%Stores ExitMsg for CP model
-goodness_X = zeros(nb_starts,2); %Stores  Fit and  F(error for lbfgsb)
+Low{3}=zeros(size(X,3),nm_comp);    % nonnegativity constraints in the third mode
+goodness_X1 = strings(nb_starts,1); % Stores ExitMsg for CP model
+goodness_X  = zeros(nb_starts,2);   % Stores  Fit and  F(error for lbfgsb)
 Fac_X = cell(nb_starts,1);
 out_X = cell(nb_starts,1);
 for i=1:nb_starts
     if i==1
-        
-        [Fac_X{i}, ~, out_X{i}] =cp_opt(X,nm_comp,'init','nvecs','lower',Low,'opt_option',optionsCP);
+        [Fac_X{i}, ~, out_X{i}] = cp_opt(X,nm_comp,'init','nvecs','lower',Low,'opt_option',optionsCP);
     else
-        
-        [Fac_X{i}, ~, out_X{i}] =cp_opt(X,nm_comp,'init','randn','lower',Low,'opt_option',optionsCP);
-        
+        [Fac_X{i}, ~, out_X{i}] = cp_opt(X,nm_comp,'init','randn','lower',Low,'opt_option',optionsCP);
     end
-    
-    goodness_X1(i) = out_X{i}.ExitMsg;
+    goodness_X1(i)  = out_X{i}.ExitMsg;
     goodness_X(i,1) = out_X{i}.Fit;
     goodness_X(i,2) = out_X{i}.OptOut.err(end,1);
 end
@@ -81,16 +81,12 @@ end
 % 2 -> Inconclusive, need more random starts
 good_flag = find(goodness_X1(:) == 'CONVERGENCE: NORM_OF_PROJECTED_GRADIENT_<=_PGTOL.' | goodness_X1(:) == 'CONVERGENCE: REL_REDUCTION_OF_F_<=_FACTR*EPSMCH.');
 if length(good_flag)>=1
-    F_round = round(goodness_X(good_flag,2),8);
+    F_round      = round(goodness_X(good_flag,2),8);
     best_F_index = good_flag(F_round == min(F_round));
     if length(best_F_index) < 2
-        F_round = round(goodness_X(good_flag,2),5);
+        F_round      = round(goodness_X(good_flag,2),5);
         best_F_index = good_flag(F_round == min(F_round));
-    end
-else
-    F_round = round(goodness_X(:,2),8);
-    best_F_index = find(F_round == min(F_round));
-    
+    end   
 end
 
 eps = .05;
@@ -114,15 +110,14 @@ elseif length(best_F_index) > 1
 end
 
 %% fit, CC, TC, C12 values
-uniqueness=unique_test
-[er,best_F_index]=sort(goodness_X(i,2),'ascend');
+uniqueness        = unique_test;
 Fac_X_best = Fac_X{best_F_index(1)};
 out_X_best = out_X{best_F_index(1)};
-Fac = Fac_X_best;
-fit=out_X_best.Fit
-Consistency = corcond(X.data,normalize(Fac,1),[],0)
-tc=TC(Fac.U)
-C12=(Fac.U{1}(:,1)'*Fac.U{1}(:,2))/norm(Fac.U{1}(:,1))/norm(Fac.U{1}(:,2))
+Fac  = Fac_X_best;
+fit  = out_X_best.Fit; %model fit
+Consistency = corcond(X.data,normalize(Fac,1),[],0); %core consistency
+tc   = TC(Fac.U);      %tucker congruence
+C12  =(Fac.U{1}(:,1)'*Fac.U{1}(:,2))/norm(Fac.U{1}(:,1))/norm(Fac.U{1}(:,2)); 
 
 
 %%  plot CP model
@@ -171,9 +166,7 @@ for i=2:3
         end
     end
     set(gca,'FontSize', 18)
-    legend(Leglab,'TextColor','blue')
-    
+    legend(Leglab,'TextColor','blue')    
 end
-
 
 
