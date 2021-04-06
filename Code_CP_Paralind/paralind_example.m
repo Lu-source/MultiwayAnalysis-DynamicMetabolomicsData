@@ -1,28 +1,30 @@
+% This is an example script showing how to fit a Paralind model to the data generated
+% through simulations of dynamic systems. 
 
-% An example script showing how to fit a Paralind model to the data generated
-% by dynamic metabolomics data sets.
-
+% We use Tensor Toolbox. In addition, parts of the scripts may require the dataset
+% object (https://eigenvector.com/software/dataset-object/), publically available.
 %% load data
-load('GLM_beta002_PFKalpha05.mat','Y')
-X=tensor(Y.data);
+%load('GLM_beta002_PFKalpha05.mat','Y')
+load LOS_beta001_alpha05.mat
+X = tensor(Y.data);
 labelss = Y.label{2};
-s=size(X);
+s = size(X);
 
 %% preprocess data
 %  centering across the subject mode
-XX=X.data;
+XX   = X.data;
 temp = XX(:,:);
 temp_centered = temp - repmat(mean(temp),size(temp,1),1);
 XXX = reshape(temp_centered, size(XX));
-X=tensor(XXX);
+X   = tensor(XXX);
 % scaling in the metabolites mode - using root mean square
 for j=1:size(X,2)
     temp = squeeze(X.data(:,j,:));
-    rms = sqrt(mean((temp(:).^2)));
+    rms  = sqrt(mean((temp(:).^2)));
     XX(:,j,:) = temp/rms;
 end
-Xpre=tensor(XX);
-X=tensor(Xpre);
+Xpre = tensor(XX);
+X    = tensor(Xpre);
 
 %% plot the preprocessed data
 figure
@@ -44,22 +46,22 @@ for i=1:s(2)
 end
 
 %% Paralind model
-nb_starts =60;
-H0=[1 1];
-A0=[];B0=[];C0=[];
-Options(1)=1e-10;
-Options(2)=10000;
-Options(3)=2;
+nb_starts = 5;
+H0 =[1 1];
+A0 = [];B0 = [];C0 = [];
+Options(1) = 1e-10;
+Options(2) = 10000;
+Options(3) = 2;
 R=1;S=2;
 Constraints = [0 -1 3 1];
 for i=1:nb_starts
-    [A,H,B,C, ~, ~,explainvar]=paralind_Lu_ortho(X.data,R,S,Constraints,Options,H0,A0,B0,C0);
-    FactorsXL{i}{1}=A*H;
-    FactorsXL{i}{2}=B;
-    FactorsXL{i}{3}=C;
-    Fac_X{i}=ktensor(FactorsXL{i});
-    erF(i)=norm(X-full(Fac_X{i}));
-    expvar(i)=explainvar;
+    [A,H,B,C, ~, ~,explainvar] = paralind_Lu_ortho(X.data,R,S,Constraints,Options,H0,A0,B0,C0);
+    FactorsXL{i}{1} = A*H;
+    FactorsXL{i}{2} = B;
+    FactorsXL{i}{3} = C;
+    Fac_X{i}  = ktensor(FactorsXL{i});
+    erF(i)    = norm(X-full(Fac_X{i}));
+    expvar(i) = explainvar;
 end
 %% uniqueness test
 Fit_round = round(erF,8);
@@ -90,22 +92,16 @@ end
 
 
 %%
-unique=unique_test
-[er,best_F_index]=sort(erF,'ascend');
-Fac=Fac_X{best_F_index(1)};
-fit=expvar(best_F_index(1))
-% normalise the factor
-nm_comp=S; % number of components
-for j=1:nm_comp
-    Fac.lambda(j)=1;
-    for i=1:length(s)
-        a=Fac.U{i}(:,j);
-        Fac.lambda(j)=Fac.lambda(j)*Fac.lambda(j)*norm(a);
-        Fac.U{i}(:,j)=a/norm(a);
-    end
-end
-%%  plot CP model
-Z2={'subjects','metabolites','time'};
+unique = unique_test;
+[er,best_F_index] = sort(erF,'ascend');
+Fac = Fac_X{best_F_index(1)};
+fit = expvar(best_F_index(1));
+% normalise the factor matrices 
+Fac = normalize(Fac); 
+nm_comp = S;
+
+%%  plot the factor matrices
+Z2 = {'subjects','metabolites','time'};
 Z3{1}=1:s(1);Z3{2}=1:s(2);Z3{3}=1:s(3);
 labels{1} = Y.label{1};
 labels{2} = Y.label{2};
@@ -141,6 +137,5 @@ for i=1:3
     end
     set(gca,'FontSize', 18)
     legend(Leglab,'TextColor','blue')
-    
 end
 
