@@ -1,4 +1,4 @@
-% An example script for missing data estimation through cross-validation using the CP model.
+% This is an example script for missing data estimation through cross-validation using the CP model.
 
 % We use Tensor Toolbox as well as the L-BFGS-B implementation from https://github.com/stephenbeckr/L-BFGS-B-C
 % In addition, parts of the scripts may require the dataset object (https://eigenvector.com/software/dataset-object/), publically available.
