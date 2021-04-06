@@ -1,4 +1,7 @@
-function [A,H,B,C,fit,it,explainvar] = paralind(X,R,S,Constraints,Options,H,A,B,C);
+% This is the Paralind function from http://www.models.life.ku.dk/paralind with
+% minor modification to include orthogonality constraints.
+
+function [A,H,B,C,fit,it,explainvar] = paralind_Lu_ortho(X,R,S,Constraints,Options,H,A,B,C);
 
 %     ___________________________________________________
 %
