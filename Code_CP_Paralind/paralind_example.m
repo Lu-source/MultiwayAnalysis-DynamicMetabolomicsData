@@ -1,11 +1,17 @@
 % This is an example script showing how to fit a Paralind model to the data generated
 % through simulations of dynamic systems. 
 
-% We use Tensor Toolbox. In addition, parts of the scripts may require the dataset
-% object (https://eigenvector.com/software/dataset-object/), publically available.
+
+%To run the code, 'paralind_Lu_ortho.m' is needed.
+% 'paralind_Lu_ortho.m' is an improved version of  the 'paralind.m' from
+% http://www.models.life.ku.dk/paralind, with additional orthogonal
+% constraint added to the factors and with bugs fixed for missing data 
+ 
+%In addition, parts of the scripts may require the dataset object 
+%(https://eigenvector.com/software/dataset-object/), publically available.
+
 %% load data
-%load('GLM_beta002_PFKalpha05.mat','Y')
-load LOS_beta001_alpha05.mat
+load('LOS_beta001_alpha05.mat','Y')
 X = tensor(Y.data);
 labelss = Y.label{2};
 s = size(X);
@@ -16,15 +22,13 @@ XX   = X.data;
 temp = XX(:,:);
 temp_centered = temp - repmat(mean(temp),size(temp,1),1);
 XXX = reshape(temp_centered, size(XX));
-X   = tensor(XXX);
-% scaling in the metabolites mode - using root mean square
+%  scaling in the metabolites mode - using root mean square
 for j=1:size(X,2)
-    temp = squeeze(X.data(:,j,:));
+    temp = squeeze(XXX(:,j,:));
     rms  = sqrt(mean((temp(:).^2)));
-    XX(:,j,:) = temp/rms;
+    XX(:,j,:) = temp/rms;          
 end
-Xpre = tensor(XX);
-X    = tensor(Xpre);
+X    = tensor(XX);
 
 %% plot the preprocessed data
 figure
@@ -46,7 +50,7 @@ for i=1:s(2)
 end
 
 %% Paralind model
-nb_starts = 5;
+nb_starts = 60;
 H0 =[1 1];
 A0 = [];B0 = [];C0 = [];
 Options(1) = 1e-10;
@@ -138,4 +142,5 @@ for i=1:3
     set(gca,'FontSize', 18)
     legend(Leglab,'TextColor','blue')
 end
+
 
