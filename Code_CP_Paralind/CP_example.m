@@ -7,7 +7,7 @@
 
 %% load data: 
 % Y is a subjects by metabolites by time points tensor.
-load('GLM_beta036_PFKalpha05.mat','Y')
+load('LOS_beta03_alpha05.mat','Y')
 X = tensor(Y.data);
 labelss = Y.label{2};
 s=size(X);
@@ -19,15 +19,13 @@ XX   = X.data;
 temp = XX(:,:);
 temp_centered = temp - repmat(mean(temp),size(temp,1),1);
 XXX = reshape(temp_centered, size(XX));
-X   = tensor(XXX);
 % scaling in the metabolites mode - using root mean square
 for j=1:size(X,2)
-    temp = squeeze(X.data(:,j,:));
+    temp = squeeze(XXX(:,j,:));
     rms  = sqrt(mean((temp(:).^2)));
     XX(:,j,:) = temp/rms;          
 end
-Xpre = tensor(XX);
-X    = tensor(Xpre);
+X    = tensor(XX);
 
 
 %% plot the preprocessed data
@@ -51,9 +49,8 @@ end
 
 
 %% CP model
-nb_starts = 50;
+nb_starts = 60;
 nm_comp   = 2;
-%optionsCP.factr  = 1e5;
 optionsCP.maxIts = 10000;
 optionsCP.maxTotalITs = 50000;
 optionsCP.printEvery  = 10000;
@@ -111,9 +108,8 @@ end
 
 %% fit, CC, TC, C12 values
 uniqueness        = unique_test;
-Fac_X_best = Fac_X{best_F_index(1)};
+Fac = Fac_X{best_F_index(1)};
 out_X_best = out_X{best_F_index(1)};
-Fac  = Fac_X_best;
 fit  = out_X_best.Fit; %model fit
 Consistency = corcond(X.data,normalize(Fac,1),[],0); %core consistency
 tc   = TC(Fac.U);      %tucker congruence
@@ -168,5 +164,7 @@ for i=2:3
     set(gca,'FontSize', 18)
     legend(Leglab,'TextColor','blue')    
 end
+
+
 
 
