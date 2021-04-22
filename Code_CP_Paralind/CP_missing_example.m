@@ -4,7 +4,7 @@
 % In addition, parts of the scripts may require the dataset object (https://eigenvector.com/software/dataset-object/), publically available.
 
 %% load data
-load GLM_beta002_PFKalpha05.mat
+load LOS_beta001_alpha05.mat
 Xorig = tensor(Y.data);
 
 %% add noise
@@ -13,7 +13,7 @@ N      = tensor(randn(size(Xorig)));
 Xnoise = Xorig + eta*N/norm(N)*norm(Xorig);
 
 %% algorithmic options
-nb_starts = 40;
+nb_starts = 20;
 nm_comp   = 2;
 optionsCP.maxIts      = 10000;
 optionsCP.maxTotalITs = 50000;
@@ -29,8 +29,7 @@ for q = 1:length(mis_perc) % loop for 20 different missing data patterns
     
     W = create_missing_data_pattern(size(Xorig),mis_perc(q));
     data.Wall{q} = W; %store the missing position for each sample
-    
-    
+        
     % set missing value to be NaN
     Xmiss = Xnoise;
     Xmiss(find(W.data==0))= NaN;
@@ -51,14 +50,14 @@ for q = 1:length(mis_perc) % loop for 20 different missing data patterns
     Xpre = tensor(XX);
     Xpre(find(W.data==0))=0;
     
-    %  Perform the CP model
+    %  Fit the CP model
     X = Xpre;
     goodness_X1 = strings(nb_starts,1);
     goodness_X  = zeros(nb_starts,1); %Stores ExitMsg, Fit, F(error for lbfgsb)
     Fac_X = cell(nb_starts,1);
     out_X = cell(nb_starts,1);
     
-    % Call cp_wopt to fit the CP model
+    % Call cp_wopt to fit the model
     for i = 1:nb_starts
         if i==1
             [Fac_X{i}, ~, out_X{i}] = cp_wopt(X,W,nm_comp,'init','nvecs','lower',Low,'opt_option',optionsCP);
@@ -78,7 +77,7 @@ for q = 1:length(mis_perc) % loop for 20 different missing data patterns
     % pull back the data
     Xtilde = full(Fac);
     X      = X_centered;
-    %%scaling back within the metabolites mode
+    % scaling back within the metabolites mode
     for j=1:size(X,2)
         temp      = squeeze(X(:,j,:));
         temptilde = squeeze(Xtilde.data(:,j,:));
@@ -86,7 +85,7 @@ for q = 1:length(mis_perc) % loop for 20 different missing data patterns
         XX(:,j,:) = temptilde*rms;
     end
     Xtilde = tensor(XX);
-    %%centering back across the condition mode
+    % centering back across the subjects mode
     temptilde = Xtilde.data(:,:);
     X = Xmiss;
     temp = X.data(:,:);
@@ -100,15 +99,15 @@ for q = 1:length(mis_perc) % loop for 20 different missing data patterns
 end
 
 
-%% plot predicted--actual
+%% plot actual vs. predicted for each missing data pattern
 data.X = Xorig;
 figure
 for q = 1:length(data.Xhat)
     plot(data.X(find(data.Wall{q}==0)),data.Xhat{q}(find(data.Wall{q}==0)),'*','Markersize',11)
-    hold on
     set(gca,'fontsize',20)
     xlabel('actual')
     ylabel('predicted')
+    hold on;
 end
 
 % %% save the data
