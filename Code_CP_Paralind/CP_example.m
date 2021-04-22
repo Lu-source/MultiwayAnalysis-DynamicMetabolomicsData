@@ -7,7 +7,7 @@
 
 %% load data: 
 % Y is a subjects by metabolites by time points tensor.
-load('LOS_beta03_alpha05.mat','Y')
+load('LOS_beta001_alpha05','Y')
 X = tensor(Y.data);
 labelss = Y.label{2};
 s=size(X);
@@ -37,7 +37,7 @@ for i=1:s(2)
             plot(1:s(3),squeeze(X.data(j,i,:)),'r','Linewidth',1)
             xlim([1 20]);
             hold on
-        elseif j<=20
+        elseif j>10
             plot(1:s(3),squeeze(X.data(j,i,:)),'b','Linewidth',1)
             xlim([1 20]);
             hold on
@@ -49,14 +49,14 @@ end
 
 
 %% CP model
-nb_starts = 60;
-nm_comp   = 2;
+nb_starts = 20;
+nm_comp   = 3;
 optionsCP.maxIts = 10000;
 optionsCP.maxTotalITs = 50000;
 optionsCP.printEvery  = 10000;
-Low{1}=-Inf*ones(size(X,1),nm_comp);
-Low{2}=-Inf*ones(size(X,2),nm_comp);
-Low{3}=zeros(size(X,3),nm_comp);    % nonnegativity constraints in the third mode
+Low{1} = -Inf*ones(size(X,1),nm_comp);
+Low{2} = -Inf*ones(size(X,2),nm_comp);
+Low{3} = zeros(size(X,3),nm_comp);    % nonnegativity constraints in the third mode
 goodness_X1 = strings(nb_starts,1); % Stores ExitMsg for CP model
 goodness_X  = zeros(nb_starts,2);   % Stores  Fit and  F(error for lbfgsb)
 Fac_X = cell(nb_starts,1);
