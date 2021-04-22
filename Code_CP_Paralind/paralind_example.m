@@ -11,7 +11,7 @@
 %(https://eigenvector.com/software/dataset-object/), publically available.
 
 %% load data
-load('LOS_beta001_alpha05.mat','Y')
+load('LOS_beta001_alpha05','Y')
 X = tensor(Y.data);
 labelss = Y.label{2};
 s = size(X);
@@ -39,7 +39,7 @@ for i=1:s(2)
             plot(1:s(3),squeeze(X.data(j,i,:)),'r','Linewidth',1)
             xlim([1 20]);
             hold on
-        elseif j<=20
+        elseif j>10
             plot(1:s(3),squeeze(X.data(j,i,:)),'b','Linewidth',1)
             xlim([1 20]);
             hold on
@@ -50,7 +50,7 @@ for i=1:s(2)
 end
 
 %% Paralind model
-nb_starts = 60;
+nb_starts = 20;
 H0 =[1 1];
 A0 = [];B0 = [];C0 = [];
 Options(1) = 1e-10;
