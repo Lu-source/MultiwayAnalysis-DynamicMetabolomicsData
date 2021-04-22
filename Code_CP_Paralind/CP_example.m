@@ -50,7 +50,7 @@ end
 
 %% CP model
 nb_starts = 20;
-nm_comp   = 3;
+nm_comp   = 2;
 optionsCP.maxIts = 10000;
 optionsCP.maxTotalITs = 50000;
 optionsCP.printEvery  = 10000;
